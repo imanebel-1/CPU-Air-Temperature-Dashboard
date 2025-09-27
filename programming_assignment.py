@@ -129,40 +129,62 @@ df = pd.DataFrame(data)  # open data in pandas dataframe
 # # Ensure Timestamp is datetime
 # # df['Timestamp'] = pd.to_datetime(df['Timestamp'])
 
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 
-def transform_and_plot(df, feature, transform_type, start_date, end_date):
-    # Filter by date
-    df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)].copy()
+# def transform_and_plot(df, feature, transform_type, start_date, end_date):
+#     # Filter by date
+#     df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)].copy()
     
-    # apply transformation
-    if transform_type == 'log':
-        df_filtered[feature + '_transformed'] = np.log(df_filtered[feature])
-    elif transform_type == 'standardisation':
-        df_filtered[feature + '_transformed'] = (df_filtered[feature] - df_filtered[feature].mean()) / df_filtered[feature].std()
-    else:
-        print("Unknown transformation. Using raw data.")
-        df_filtered[feature + '_transformed'] = df_filtered[feature]
+#     # apply transformation
+#     if transform_type == 'log':
+#         df_filtered[feature + '_transformed'] = np.log(df_filtered[feature])
+#     elif transform_type == 'standardisation':
+#         df_filtered[feature + '_transformed'] = (df_filtered[feature] - df_filtered[feature].mean()) / df_filtered[feature].std()
+#     else:
+#         print("Unknown transformation. Using raw data.")
+#         df_filtered[feature + '_transformed'] = df_filtered[feature]
     
-    # plot the figures
-    plt.figure(figsize=(10,5))
-    plt.plot(df_filtered['Timestamp'], df_filtered[feature + '_transformed'], marker='o')
-    plt.title(f"{feature} ({transform_type}) from {start_date} to {end_date}")
-    plt.xlabel("Timestamp")
-    plt.ylabel(feature + f" ({transform_type})")
-    plt.xticks(rotation=45)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+#     # plot the figures
+#     plt.figure(figsize=(10,5))
+#     plt.plot(df_filtered['Timestamp'], df_filtered[feature + '_transformed'], marker='o')
+#     plt.title(f"{feature} ({transform_type}) from {start_date} to {end_date}")
+#     plt.xlabel("Timestamp")
+#     plt.ylabel(feature + f" ({transform_type})")
+#     plt.xticks(rotation=45)
+#     plt.grid(True)
+#     plt.tight_layout()
+#     plt.show()
 
-# example for user to show interaction in console:
-start_date = input("Enter start date (YYYY-MM-DD): ")
-end_date = input("Enter end date (YYYY-MM-DD): ")
-feature = input("Enter feature to transform ('Air' or 'CPU'): ")
-transform_type = input("Enter transformation type ('log' or 'standardisation'): ")
+# # example for user to show interaction in console:
+# start_date = input("Enter start date (YYYY-MM-DD): ")
+# end_date = input("Enter end date (YYYY-MM-DD): ")
+# feature = input("Enter feature to transform ('Air' or 'CPU'): ")
+# transform_type = input("Enter transformation type ('log' or 'standardisation'): ")
 
-transform_and_plot(df, feature, transform_type, start_date, end_date)
+# transform_and_plot(df, feature, transform_type, start_date, end_date)
+
+
+import pandas as pd
+
+# ask user for threshold (number of std deviations) for anomaly detection on CPU temperature.
+# I only considered cpu temperature because it is more critical than air temperature.
+threshold = float(input("Enter anomaly threshold for CPU (e.g., 2 for mean ± 2*std): "))
+
+# compute mean and std of cpu temperature
+cpu_mean = df['CPU'].mean()
+cpu_std = df['CPU'].std()
+
+# identify anomalies: anything beyond mean ± threshold*std
+df['CPU_anomaly'] = (df['CPU'] > cpu_mean + threshold*cpu_std)
+
+# find anomalies
+anomalies = df[df['CPU_anomaly']]
+print(f"Number of anomalies detected in CPU (threshold={threshold}):", len(anomalies))
+print(anomalies[['Timestamp','CPU']])
+
+
+
 
 
 
