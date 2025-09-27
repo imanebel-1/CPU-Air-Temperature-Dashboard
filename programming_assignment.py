@@ -84,43 +84,85 @@ import plotly.express as px
 import plotly.offline as pyo
 
 df = pd.DataFrame(data)  # open data in pandas dataframe
-fig_plot = px.line(df, x='Timestamp', y=['Air','CPU'],
-              title="Temperature Over Time",
-              labels={'value':'Temperature (°C)', 'variable':'Type'}) # plot the figure using pyplot express
-pyo.plot(fig_plot, filename="plot.html", auto_open=True) # to view the data in HTML plot, we used pyo which is an offline plotly.
+# fig_plot = px.line(df, x='Timestamp', y=['Air','CPU'],
+#               title="Temperature Over Time",
+#               labels={'value':'Temperature (°C)', 'variable':'Type'}) # plot the figure using pyplot express
+# pyo.plot(fig_plot, filename="plot.html", auto_open=True) # to view the data in HTML plot, we used pyo which is an offline plotly.
 
 
 
-# Convert to from wide from int long form which is suitable for histogram so that we plot them on one figure
-df_long = df.melt(id_vars='Timestamp', value_vars=['Air','CPU'], 
-                  var_name='Type', value_name='Temperature')
+# # Convert to from wide from int long form which is suitable for histogram so that we plot them on one figure
+# df_long = df.melt(id_vars='Timestamp', value_vars=['Air','CPU'], 
+#                   var_name='Type', value_name='Temperature')
 
-# plot histograms together in an interactive way
-fig = px.histogram(df_long, x='Temperature', color='Type', barmode='overlay',
-                   nbins=30, title='Air and CPU Temperature Distribution')
+# # plot histograms together in an interactive way
+# fig = px.histogram(df_long, x='Temperature', color='Type', barmode='overlay',
+#                    nbins=30, title='Air and CPU Temperature Distribution')
 
-fig.update_traces(opacity=0.6)  # make bars semi transparent
-pyo.plot(fig, filename="histogram_air_cpu.html", auto_open=True)
+# fig.update_traces(opacity=0.6)  # make bars semi transparent
+# pyo.plot(fig, filename="histogram_air_cpu.html", auto_open=True)
 
-# basic filtering functionality:
+# # basic filtering functionality:
 
-start_date = input("Please enter start date between 2021-11-12 and 2022-07-19 (YYYY-MM-DD): ")
-end_date = input("Please enter end date between 2021-11-12 and 2022-07-19 (YYYY-MM-DD): ")
+# start_date = input("Please enter start date between 2021-11-12 and 2022-07-19 (YYYY-MM-DD): ")
+# end_date = input("Please enter end date between 2021-11-12 and 2022-07-19 (YYYY-MM-DD): ")
 
-df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)]
-# calculate statistics over the specified range of date:
-air_avg = df_filtered['Air'].mean()
-air_max = df_filtered['Air'].max()
-air_min = df_filtered['Air'].min()
+# df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)]
+# # calculate statistics over the specified range of date:
+# air_avg = df_filtered['Air'].mean()
+# air_max = df_filtered['Air'].max()
+# air_min = df_filtered['Air'].min()
 
-cpu_avg = df_filtered['CPU'].mean()
-cpu_max = df_filtered['CPU'].max()
-cpu_min = df_filtered['CPU'].min()
+# cpu_avg = df_filtered['CPU'].mean()
+# cpu_max = df_filtered['CPU'].max()
+# cpu_min = df_filtered['CPU'].min()
+# count = df_filtered.shape[0]
 
-# Print results including date range
-print(f"\nStatistics for Air and CPU temperatures from {start_date} to {end_date}:")
-print(f"Air Temperature -> Avg: {air_avg:.2f}, Max: {air_max}, Min: {air_min}")
-print(f"CPU Temperature -> Avg: {cpu_avg:.2f}, Max: {cpu_max}, Min: {cpu_min}")
+
+# # Print results including date range
+# print(f"\nStatistics for Air and CPU temperatures from {start_date} to {end_date}:")
+# print(f"Air Temperature -> Avg: {air_avg:.2f}, Max: {air_max}, Min: {air_min}")
+# print(f"CPU Temperature -> Avg: {cpu_avg:.2f}, Max: {cpu_max}, Min: {cpu_min}")
+# print(f"Number of readings: {count}")
+
+# ## let's apply transformation here according to the user preference: either thru log or standardisation:
+# # Ensure Timestamp is datetime
+# # df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+def transform_and_plot(df, feature, transform_type, start_date, end_date):
+    # Filter by date
+    df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)].copy()
+    
+    # apply transformation
+    if transform_type == 'log':
+        df_filtered[feature + '_transformed'] = np.log(df_filtered[feature])
+    elif transform_type == 'standardisation':
+        df_filtered[feature + '_transformed'] = (df_filtered[feature] - df_filtered[feature].mean()) / df_filtered[feature].std()
+    else:
+        print("Unknown transformation. Using raw data.")
+        df_filtered[feature + '_transformed'] = df_filtered[feature]
+    
+    # plot the figures
+    plt.figure(figsize=(10,5))
+    plt.plot(df_filtered['Timestamp'], df_filtered[feature + '_transformed'], marker='o')
+    plt.title(f"{feature} ({transform_type}) from {start_date} to {end_date}")
+    plt.xlabel("Timestamp")
+    plt.ylabel(feature + f" ({transform_type})")
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+# example for user to show interaction in console:
+start_date = input("Enter start date (YYYY-MM-DD): ")
+end_date = input("Enter end date (YYYY-MM-DD): ")
+feature = input("Enter feature to transform ('Air' or 'CPU'): ")
+transform_type = input("Enter transformation type ('log' or 'standardisation'): ")
+
+transform_and_plot(df, feature, transform_type, start_date, end_date)
 
 
 
