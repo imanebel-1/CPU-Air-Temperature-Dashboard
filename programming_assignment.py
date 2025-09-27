@@ -91,17 +91,36 @@ pyo.plot(fig_plot, filename="plot.html", auto_open=True) # to view the data in H
 
 
 
-# Convert to long-form
+# Convert to from wide from int long form which is suitable for histogram so that we plot them on one figure
 df_long = df.melt(id_vars='Timestamp', value_vars=['Air','CPU'], 
                   var_name='Type', value_name='Temperature')
 
-# Plot histograms together
+# plot histograms together in an interactive way
 fig = px.histogram(df_long, x='Temperature', color='Type', barmode='overlay',
                    nbins=30, title='Air and CPU Temperature Distribution')
 
-fig.update_traces(opacity=0.6)  # make bars semi-transparent
+fig.update_traces(opacity=0.6)  # make bars semi transparent
 pyo.plot(fig, filename="histogram_air_cpu.html", auto_open=True)
 
+# basic filtering functionality:
+
+start_date = input("Please enter start date between 2021-11-12 and 2022-07-19 (YYYY-MM-DD): ")
+end_date = input("Please enter end date between 2021-11-12 and 2022-07-19 (YYYY-MM-DD): ")
+
+df_filtered = df[(df['Timestamp'] >= start_date) & (df['Timestamp'] <= end_date)]
+# calculate statistics over the specified range of date:
+air_avg = df_filtered['Air'].mean()
+air_max = df_filtered['Air'].max()
+air_min = df_filtered['Air'].min()
+
+cpu_avg = df_filtered['CPU'].mean()
+cpu_max = df_filtered['CPU'].max()
+cpu_min = df_filtered['CPU'].min()
+
+# Print results including date range
+print(f"\nStatistics for Air and CPU temperatures from {start_date} to {end_date}:")
+print(f"Air Temperature -> Avg: {air_avg:.2f}, Max: {air_max}, Min: {air_min}")
+print(f"CPU Temperature -> Avg: {cpu_avg:.2f}, Max: {cpu_max}, Min: {cpu_min}")
 
 
 
