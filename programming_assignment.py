@@ -63,17 +63,32 @@ def data_range(vals):
 # print("Max:", max(cpu_vals))
 # print("Range:", data_range(cpu_vals))
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-timestamps = [d['Timestamp'] for d in data]
-air_vals = [d['Air'] for d in data]
-cpu_vals = [d['CPU'] for d in data]
+# timestamps = [d['Timestamp'] for d in data]
+# air_vals = [d['Air'] for d in data]
+# cpu_vals = [d['CPU'] for d in data]
 
-plt.figure(figsize=(10,5))
-plt.plot(timestamps, air_vals, label="Air Temp", color="blue")
-plt.plot(timestamps, cpu_vals, label="CPU Temp", color="red")
-plt.xlabel("Timestamp")
-plt.ylabel("Temperature (°C)")
-plt.title("Temperature Over Time")
-plt.legend()
-plt.show()
+# plt.figure(figsize=(10,5))
+# plt.plot(timestamps, air_vals, label="Air Temp", color="blue")
+# plt.plot(timestamps, cpu_vals, label="CPU Temp", color="red")
+# plt.xlabel("Timestamp")
+# plt.ylabel("Temperature (°C)")
+# plt.title("Temperature Over Time")
+# plt.legend()
+# plt.show()
+
+# for interactive plot, we need plotly and pandas.
+import pandas as pd
+import plotly.express as px
+import plotly.offline as pyo
+
+df = pd.DataFrame(data)  # open data in pandas dataframe
+fig = px.line(df, x='Timestamp', y=['Air','CPU'],
+              title="Temperature Over Time",
+              labels={'value':'Temperature (°C)', 'variable':'Type'}) # plot the figure using pyplot express
+pyo.plot(fig, filename="plot.html", auto_open=True) # to view the data in HTML plot, we used pyo which is an offline plotly.
+
+
+
+
