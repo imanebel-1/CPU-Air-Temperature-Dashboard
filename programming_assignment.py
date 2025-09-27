@@ -84,10 +84,23 @@ import plotly.express as px
 import plotly.offline as pyo
 
 df = pd.DataFrame(data)  # open data in pandas dataframe
-fig = px.line(df, x='Timestamp', y=['Air','CPU'],
+fig_plot = px.line(df, x='Timestamp', y=['Air','CPU'],
               title="Temperature Over Time",
               labels={'value':'Temperature (°C)', 'variable':'Type'}) # plot the figure using pyplot express
-pyo.plot(fig, filename="plot.html", auto_open=True) # to view the data in HTML plot, we used pyo which is an offline plotly.
+pyo.plot(fig_plot, filename="plot.html", auto_open=True) # to view the data in HTML plot, we used pyo which is an offline plotly.
+
+
+
+# Convert to long-form
+df_long = df.melt(id_vars='Timestamp', value_vars=['Air','CPU'], 
+                  var_name='Type', value_name='Temperature')
+
+# Plot histograms together
+fig = px.histogram(df_long, x='Temperature', color='Type', barmode='overlay',
+                   nbins=30, title='Air and CPU Temperature Distribution')
+
+fig.update_traces(opacity=0.6)  # make bars semi-transparent
+pyo.plot(fig, filename="histogram_air_cpu.html", auto_open=True)
 
 
 
