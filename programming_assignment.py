@@ -165,25 +165,53 @@ df = pd.DataFrame(data)  # open data in pandas dataframe
 # transform_and_plot(df, feature, transform_type, start_date, end_date)
 
 
-import pandas as pd
+# # ask user for threshold (number of std deviations) for anomaly detection on CPU temperature.
+# # I only considered cpu temperature because it is more critical than air temperature.
+# threshold = float(input("Enter anomaly threshold for CPU (e.g., 2 for mean ± 2*std): "))
 
-# ask user for threshold (number of std deviations) for anomaly detection on CPU temperature.
-# I only considered cpu temperature because it is more critical than air temperature.
-threshold = float(input("Enter anomaly threshold for CPU (e.g., 2 for mean ± 2*std): "))
+# # compute mean and std of cpu temperature
+# cpu_mean = df['CPU'].mean()
+# cpu_std = df['CPU'].std()
 
-# compute mean and std of cpu temperature
-cpu_mean = df['CPU'].mean()
-cpu_std = df['CPU'].std()
+# # identify anomalies: anything beyond mean ± threshold*std
+# df['CPU_anomaly'] = (df['CPU'] > cpu_mean + threshold*cpu_std)
 
-# identify anomalies: anything beyond mean ± threshold*std
-df['CPU_anomaly'] = (df['CPU'] > cpu_mean + threshold*cpu_std)
-
-# find anomalies
-anomalies = df[df['CPU_anomaly']]
-print(f"Number of anomalies detected in CPU (threshold={threshold}):", len(anomalies))
-print(anomalies[['Timestamp','CPU']])
+# # find anomalies
+# anomalies = df[df['CPU_anomaly']]
+# print(f"Number of anomalies detected in CPU (threshold={threshold}):", len(anomalies))
+# print(anomalies[['Timestamp','CPU']])
 
 
+## added correlation between cpu and air temperatures:
+
+def analyze_correlation(df):
+    # calculate correlation between cpu and air temperatures
+    correlation = df['CPU'].corr(df['Air'])
+    print(f"Correlation between CPU and Air temperature: {correlation:.2f}")
+    return correlation
+
+# example:
+correlation_value = analyze_correlation(df)
+
+
+def plot_correlation(df):
+    """
+    Create an interactive scatter plot showing the correlation
+    between CPU and Air temperatures, with a trend line.
+    """
+    fig_correlation = px.scatter(
+        df,
+        x='Air',
+        y='CPU',
+        trendline='ols',  # Adds a regression line
+        labels={'Air': 'Air Temperature (°C)', 'CPU': 'CPU Temperature (°C)'},
+        title='Correlation between CPU and Air Temperature'
+    )
+    fig_correlation.update_layout(title_x=0.5)
+    pyo.plot(fig_correlation, filename="correlation.html", auto_open=True)
+
+# test the function
+plot_correlation(df)
 
 
 
