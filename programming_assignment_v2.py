@@ -142,3 +142,14 @@ if __name__ == "__main__":
     df, anomalies = detect_anomalies(df, threshold)
     print(f"Number of anomalies detected in CPU (threshold={threshold}):", len(anomalies))
     print(anomalies[['Timestamp','CPU']])
+
+# added this to plot nicely the anomalies on the a dashboard
+def plot_cpu_with_anomalies(df, anomalies):
+    """
+    Returns a Plotly figure of CPU temperature with anomalies highlighted.
+    """
+    fig = px.line(df, x='Timestamp', y='CPU', title="CPU Temperature with Anomalies")
+    fig.add_scatter(x=anomalies['Timestamp'], y=anomalies['CPU'],
+                    mode='markers', marker=dict(color='red', size=8),
+                    name='Anomalies')
+    return fig
