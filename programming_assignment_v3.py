@@ -5,51 +5,54 @@ import plotly.offline as pyo
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-
+import csv
+from datetime import datetime
+import time
 
 # load data from CSV using pandas
 def load_data(file_path):
-    if not os.path.isfile(file_path): # if the file is not found, raise error
-        raise FileNotFoundError(f"CSV file not found: {file_path}")
+    if not os.path.isfile(file_path): # file checked if it exists
+        raise FileNotFoundError(f"CSV file not found: {file_path}") # raise error if not found
     
-    df = pd.read_csv(file_path, parse_dates=['Timestamp'],
-                     date_parser=lambda x: pd.to_datetime(float(x), unit='s')) # load the file and convert timestamp
+    data = [] # start with empty data list to store the data later
+    with open(file_path, "r") as f: # open file and read it
+        reader = csv.DictReader(f) # use csv dict reader to read the file
+        required_cols = ['Timestamp', 'Air', 'CPU'] # required columns
+        if not all(col in reader.fieldnames for col in required_cols): # check if all required columns are present
+            raise ValueError(f"Missing required columns: {required_cols}") # otherwise raise error
+        
+        for row in reader: # read each row
+            try: # try to convert the data to correct types
+                time_stamp = datetime.fromtimestamp(float(row['Timestamp']))
+                air_temp = float(row['Air'])
+                cpu_temp = float(row['CPU'])
+            except ValueError: # otherwise catch the error and print warning
+                print(f"Warning: Skipping invalid row: {row}")
+                continue  # skip bad data
+            
+            data.append({'Timestamp': time_stamp, 'Air': air_temp, 'CPU': cpu_temp}) # append valid data to the list
     
-    # column checks if all required columns are present
-    required_cols = ['Timestamp', 'Air', 'CPU']
-    for col in required_cols:
-        if col not in df.columns:
-            raise ValueError(f"Missing required column: {col}")
+    if not data: # check if data is empty after reading
+        raise ValueError("No valid data found in the CSV.")
     
-    # convert Air and CPU to float, handle errors
-    for col in ['Air','CPU']:
-        try: # check if the column can be converted to float
-            df[col] = df[col].astype(float)
-        except Exception: # raise error otherwise
-            raise ValueError(f"Column {col} contains non-numeric data")
-    
-    # fill missing values with column mean
-    if df.isna().any().any(): 
-        df.fillna(df.mean(), inplace=True)
-        print("Warning: Missing values detected and filled with column mean.")
-    
-    return df.to_dict('records')  # return as list of dicts
+    return data
 
 
-# basic stats
+
+# basic stats: mean, median, mode, range
 def mean(vals):
-    return np.mean(vals)
+    return np.mean(vals) # mean using numpy
 
 def median(vals):
-    return np.median(vals)
+    return np.median(vals) # median using numpy
 
-def mode(vals):
-    counts = Counter(vals)
-    max_count = max(counts.values())
-    modes = [k for k,v in counts.items() if v == max_count]
-    return modes[0]  
+def mode(vals): # mode using Counter
+    counts = Counter(vals) # count occurrences of each value
+    max_count = max(counts.values()) # find max count
+    modes = [k for k,v in counts.items() if v == max_count] # find items with max count
+    return modes[0]  # return first mode found
 
-def data_range(vals):
+def data_range(vals): # range of values max minus min
     return np.max(vals) - np.min(vals)
 
 
